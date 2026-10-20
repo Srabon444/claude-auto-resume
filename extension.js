@@ -240,8 +240,15 @@ async function menu() {
   if (pick.stop) return void drop(pick.entry);
   const text = await vscode.window.showInputBox({
     prompt: `Time until your limit resets, for "${pick.t.label}"`,
-    placeHolder: '5h 3m   |   90m   |   5:03',
-    validateInput: (v) => (parseDuration(v) ? undefined : 'Use e.g. 5h 3m, 90m or 5:03'),
+    placeHolder: '5h 3m   |   90m   |   5:03   |   45 (minutes)',
+    validateInput: (v) => {
+      const info = vscode.InputBoxValidationSeverity.Info;
+      if (!v.trim()) return { message: 'Examples: 5h 3m, 90m, 5:03 (hours:minutes), 45 (minutes)', severity: info };
+      const t = parseDuration(v);
+      if (!t) return { message: 'Not understood. Try 5h 3m, 90m, 5:03 or 45 (minutes)', severity: vscode.InputBoxValidationSeverity.Error };
+      const at = new Date(Date.now() + t).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      return { message: `Ends in ${formatRemaining(t)}, at ${at}`, severity: info };
+    },
   });
   const ms = text && parseDuration(text);
   if (!ms) return;
