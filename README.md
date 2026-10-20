@@ -7,7 +7,7 @@
 ## Install
 
 1. Open **Extensions** (`Ctrl+Shift+X`), search **Claude Auto-Resume**, click **Install**.
-   Or download the latest `.vsix` from [Releases](https://github.com/Srabon444/claude-auto-resume/releases/tag/dev-build), then **Extensions** → `⋯` → **Install from VSIX…**.
+   Or download the latest `.vsix` from [Releases](https://github.com/Srabon444/claude-auto-resume/releases/latest), then **Extensions** → `⋯` → **Install from VSIX…**.
 2. The **Claude Code** extension must be installed too.
 3. Set up key sending once (needed to press Enter in the chat):
 

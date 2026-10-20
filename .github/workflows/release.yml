@@ -1,0 +1,51 @@
+name: Release
+
+on:
+  push:
+    branches: [dev]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    # the version bump commit below must not start another run
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - name: Pick the version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # a version nobody released yet is used as is; otherwise the patch number goes up by one
+          VERSION=$(node -p "require('./package.json').version")
+          if gh release view "v$VERSION" >/dev/null 2>&1; then
+            npm version patch --no-git-tag-version
+            VERSION=$(node -p "require('./package.json').version")
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -am "Release v$VERSION [skip ci]"
+            git push origin HEAD:dev
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+      - run: npx vsce package
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "v$VERSION" ./*.vsix \
+            --target "$(git rev-parse HEAD)" \
+            --title "v$VERSION" \
+            --latest \
+            --generate-notes
