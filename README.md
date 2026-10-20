@@ -40,8 +40,20 @@ sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=uinput
 
 1. Open a Claude Code chat in an **editor tab**.
 2. Click the **clock icon** at the top right of the chat tab (or **Auto-resume** in the status bar).
-3. Choose **Start timer** and enter the time left, like `5h 3m`, `90m` or `5:03`.
+3. Choose **Start timer** and type how long is left until your limit resets (see below).
 4. Leave VS Code open. The countdown shows in the status bar. When it ends, the chat gets `continue` + Enter.
+
+### Time format
+
+| You type | It means |
+|---|---|
+| `5h 3m` | 5 hours 3 minutes |
+| `5:03` | 5 hours 3 minutes (hours:minutes) |
+| `90m` | 90 minutes |
+| `1.5h` | 1 hour 30 minutes |
+| `45` | 45 minutes (a plain number is minutes) |
+
+The box shows when the timer will end before you press Enter.
 
 **Another chat?** Open it and repeat. Every chat has its own timer. **Change** or **Stop** a timer from the same menu.
 
