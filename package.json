@@ -1,0 +1,80 @@
+{
+  "name": "claude-auto-resume",
+  "displayName": "Claude Auto-Resume",
+  "description": "Pick a duration per Claude Code chat; when it ends, \"continue\" is typed and sent in that chat, so work resumes after a usage limit resets.",
+  "version": "0.1.0",
+  "icon": "images/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Srabon444/claude-auto-resume.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Srabon444/claude-auto-resume/issues"
+  },
+  "homepage": "https://github.com/Srabon444/claude-auto-resume#readme",
+  "galleryBanner": {
+    "color": "#D97757",
+    "theme": "dark"
+  },
+  "publisher": "srabon444",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.94.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "claude",
+    "claude code",
+    "auto resume",
+    "scheduler",
+    "rate limit"
+  ],
+  "extensionKind": [
+    "ui"
+  ],
+  "extensionDependencies": [
+    "anthropic.claude-code"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./extension.js",
+  "scripts": {
+    "test": "node test.js",
+    "package": "vsce package --allow-missing-repository"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "claudeAutoResume.menu",
+        "title": "Claude Auto-Resume: Schedule or Stop",
+        "icon": "$(clock)"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "claudeAutoResume.menu",
+          "when": "activeWebviewPanelId == 'claudeVSCodePanel'",
+          "group": "navigation@100"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Claude Auto-Resume",
+      "properties": {
+        "claudeAutoResume.message": {
+          "type": "string",
+          "default": "continue",
+          "scope": "application",
+          "description": "Text typed into the chat (then Enter) when the timer ends."
+        }
+      }
+    }
+  },
+  "devDependencies": {
+    "@vscode/vsce": "^3.0.0"
+  }
+}
