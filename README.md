@@ -71,4 +71,4 @@ The box shows when the timer will end before you press Enter.
 
 ## License
 
-MIT
+MIT. This is an independent extension and is not affiliated with or endorsed by Anthropic.
