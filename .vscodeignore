@@ -3,3 +3,4 @@ test.js
 node_modules/**
 *.vsix
 .gitignore
+images/demo.gif
