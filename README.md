@@ -3,8 +3,8 @@
 <p align="center">Hit your Claude Code limit? Set a timer. When it ends, <code>continue</code> is sent in that chat for you.</p>
 
 <p align="center">
-  <a href="https://marketplace.visualstudio.com/items?itemName=ashraful.claude-auto-resume"><img src="https://img.shields.io/visual-studio-marketplace/v/ashraful.claude-auto-resume?label=Marketplace&color=D97757" alt="Marketplace version"></a>
-  <a href="https://marketplace.visualstudio.com/items?itemName=ashraful.claude-auto-resume"><img src="https://img.shields.io/visual-studio-marketplace/i/ashraful.claude-auto-resume?label=Installs&color=D97757" alt="Installs"></a>
+  <a href="https://marketplace.visualstudio.com/items?itemName=ashraful.claude-auto-resume"><img src="https://badgen.net/vs-marketplace/v/ashraful.claude-auto-resume?label=Marketplace&color=D97757" alt="Marketplace version"></a>
+  <a href="https://marketplace.visualstudio.com/items?itemName=ashraful.claude-auto-resume"><img src="https://badgen.net/vs-marketplace/i/ashraful.claude-auto-resume?label=Installs&color=D97757" alt="Installs"></a>
 </p>
 
 <p align="center"><img src="images/demo.gif" alt="Setting a timer on a chat, then the chat sending continue by itself when the timer ends"></p>
