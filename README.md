@@ -1,13 +1,18 @@
-<p align="center"><img src="images/icon.png" width="96" alt="Claude Auto-Resume"></p>
-
 <h1 align="center">Claude Auto-Resume</h1>
 
 <p align="center">Hit your Claude Code limit? Set a timer. When it ends, <code>continue</code> is sent in that chat for you.</p>
 
+<p align="center">
+  <a href="https://marketplace.visualstudio.com/items?itemName=ashraful.claude-auto-resume"><img src="https://img.shields.io/visual-studio-marketplace/v/ashraful.claude-auto-resume?label=Marketplace&color=D97757" alt="Marketplace version"></a>
+  <a href="https://marketplace.visualstudio.com/items?itemName=ashraful.claude-auto-resume"><img src="https://img.shields.io/visual-studio-marketplace/i/ashraful.claude-auto-resume?label=Installs&color=D97757" alt="Installs"></a>
+</p>
+
+<p align="center"><img src="images/demo.gif" alt="Setting a timer on a chat, then the chat sending continue by itself when the timer ends"></p>
+
 ## Install
 
-1. Open **Extensions** (`Ctrl+Shift+X`), search **Claude Auto-Resume**, click **Install**.
-   Or download the latest `.vsix` from [Releases](https://github.com/Srabon444/claude-auto-resume/releases/latest), then **Extensions** → `⋯` → **Install from VSIX…**.
+1. Install it from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=ashraful.claude-auto-resume), or open **Extensions** (`Ctrl+Shift+X`), search **Claude Auto-Resume** and click **Install**.
+   Prefer a file? Download the `.vsix` from [Releases](https://github.com/Srabon444/claude-auto-resume/releases/latest), then **Extensions** → `⋯` → **Install from VSIX…**.
 2. The **Claude Code** extension must be installed too.
 3. Set up key sending once (needed to press Enter in the chat):
 
