@@ -2,7 +2,7 @@
   "name": "claude-auto-resume",
   "displayName": "Claude Auto-Resume",
   "description": "Pick a duration per Claude Code chat; when it ends, \"continue\" is typed and sent in that chat, so work resumes after a usage limit resets.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "icon": "images/icon.png",
   "repository": {
     "type": "git",
