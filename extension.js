@@ -58,7 +58,7 @@ function resolve(entry, tabs) {
 }
 
 function save() {
-  ctx.workspaceState.update(STORE, timers.map(({ id, label, col, idx, due }) => ({ id, label, col, idx, due })));
+  ctx.workspaceState.update(STORE, timers.map(({ id, label, col, idx, due, mode }) => ({ id, label, col, idx, due, mode })));
 }
 
 function drop(entry) {
@@ -93,28 +93,28 @@ async function assertEditorFocused() {
   if (!EDITOR_CLASS.test(out.trim())) throw new Error('FOCUS_UNCONFIRMED');
 }
 
-//* types the text, calls beforeEnter (focus re-check), then presses Enter
+//* types the text (none = leave the chat box as is), calls beforeEnter (focus re-check), then presses Enter
 async function send(text, beforeEnter) {
   if (WAYLAND) {
     //* ydotool writes to /dev/uinput, so keys reach whatever window has focus
     const yd = (args) => run('ydotool', args).catch((e) => { throw new Error(e.code === 'ENOENT' ? INSTALL_MSG : `ydotool failed: ${e.message}`); });
-    await yd(['type', text]);
+    if (text) await yd(['type', text]);
     await beforeEnter();
     //? ydotool 0.1.x `key` takes names not codes (28:1 types "2"), so Enter is sent as a newline
     await yd(['type', '\n']);
   } else if (process.platform === 'linux') {
-    await run('xdotool', ['type', '--clearmodifiers', '--delay', '25', '--', text]);
+    if (text) await run('xdotool', ['type', '--clearmodifiers', '--delay', '25', '--', text]);
     await beforeEnter();
     await run('xdotool', ['key', '--clearmodifiers', 'Return']);
   } else if (process.platform === 'darwin') {
-    const script = ['-e', 'on run argv', '-e', 'tell application "System Events" to keystroke (item 1 of argv)', '-e', 'end run', '--', text];
-    await run('osascript', script);
+    const script = ['-e', 'on run argv', '-e', 'tell application "System Events" to keystroke (item 1 of argv)', '-e', 'end run', '--', text || ''];
+    if (text) await run('osascript', script);
     await beforeEnter();
     await run('osascript', ['-e', 'tell application "System Events" to key code 36']);
   } else {
     //! text goes through an env var, never into the script string
     const call = (keys) => run('powershell', ['-NoProfile', '-Command', 'Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.SendKeys]::SendWait($env:ARS_KEYS)'], { ARS_KEYS: keys });
-    await call(escapeSendKeys(text));
+    if (text) await call(escapeSendKeys(text));
     await beforeEnter();
     await call('{ENTER}');
   }
@@ -144,6 +144,10 @@ function ready(entry) {
   return !!t && g.viewColumn === t.col && g.activeTab === t.tab;
 }
 
+function messageText() {
+  return (vscode.workspace.getConfiguration('claudeAutoResume').get('message') || '').replace(/[\r\n]+/g, ' ').trim() || 'continue';
+}
+
 //* 'done' = sent or dropped, 'wait' = not yet possible (no penalty), 'fail' = counted retry
 async function fire(entry) {
   if (!vscode.window.state.focused) {
@@ -158,15 +162,18 @@ async function fire(entry) {
   await assertEditorFocused();
   const t = await activate(entry);
   if (!t) return 'fail';
+  //! the focus command pastes an @-mention of any selected text into the box, which would join the draft
+  const ed = vscode.window.activeTextEditor;
+  if (entry.mode === 'draft' && ed && !ed.selection.isEmpty) return 'fail';
   await exec('claude-vscode.focus');
   await sleep(500);
   if (!ready(entry)) return 'fail';
-  const message = (vscode.workspace.getConfiguration('claudeAutoResume').get('message') || '').replace(/[\r\n]+/g, ' ').trim() || 'continue';
-  await send(message, async () => {
+  await send(entry.mode === 'draft' ? '' : messageText(), async () => {
     if (!ready(entry)) throw new Error('ABORTED');
     await assertEditorFocused();
   });
-  info(`sent to "${entry.label}".`);
+  if (entry.mode === 'draft') warn(`pressed Enter in the chat box of "${entry.label}". Nothing is sent if the box was empty.`);
+  else info(`sent to "${entry.label}".`);
   return 'done';
 }
 
@@ -214,7 +221,7 @@ function render() {
   if (mine) status.text = mine.due <= now ? '$(watch) waiting' : `$(clock) ${formatRemaining(mine.due - now)}`;
   else status.text = timers.length ? `$(clock) ${timers.length} timer${timers.length > 1 ? 's' : ''}` : '$(clock) Auto-resume';
   status.tooltip = timers.length
-    ? timers.map((e) => `${e.label}: ${e.due <= now ? 'due' : formatRemaining(e.due - now)}`).join('\n')
+    ? timers.map((e) => `${e.label}: ${e.due <= now ? 'due' : formatRemaining(e.due - now)}${e.mode === 'draft' ? ' (chat box)' : ''}`).join('\n')
     : 'Claude Auto-Resume: click to schedule';
 }
 
@@ -229,7 +236,7 @@ async function menu() {
     const here = cur.activeTab === t.tab ? ' (this chat)' : '';
     items.push({
       label: `$(play) ${entry ? 'Change' : 'Start'} timer`,
-      description: `${t.label}${here}${entry ? ` · ${formatRemaining(entry.due - Date.now())} left` : ''}`,
+      description: `${t.label}${here}${entry ? ` · ${formatRemaining(entry.due - Date.now())} left${entry.mode === 'draft' ? ' · chat box' : ''}` : ''}`,
       t,
       entry,
     });
@@ -238,6 +245,16 @@ async function menu() {
   const pick = await vscode.window.showQuickPick(items, { placeHolder: 'Claude Auto-Resume' });
   if (!pick) return;
   if (pick.stop) return void drop(pick.entry);
+  //! hold the old timer while the dialogs are open, or it can fire mid-dialog and send twice
+  if (pick.entry) pick.entry.retryAt = Infinity;
+  try {
+    await schedule(pick);
+  } finally {
+    if (pick.entry) pick.entry.retryAt = 0;
+  }
+}
+
+async function schedule(pick) {
   const text = await vscode.window.showInputBox({
     prompt: `Time until your limit resets, for "${pick.t.label}"`,
     placeHolder: '5h 3m   |   90m   |   5:03   |   45 (minutes)',
@@ -252,8 +269,15 @@ async function menu() {
   });
   const ms = text && parseDuration(text);
   if (!ms) return;
+  const modes = [
+    { label: `$(comment) Send "${messageText()}"`, description: 'types the message, then Enter', mode: 'continue' },
+    { label: "$(edit) Send what's in the chat box", description: 'your prompt and attachments, exactly as you left them, then Enter', mode: 'draft' },
+  ];
+  if (pick.entry?.mode === 'draft') modes.reverse();
+  const how = await vscode.window.showQuickPick(modes, { placeHolder: 'When the timer ends, what should the chat send?' });
+  if (!how) return;
   if (pick.entry) drop(pick.entry);
-  timers.push({ id: String(Date.now()), label: pick.t.label, col: pick.t.col, idx: pick.t.idx, tab: pick.t.tab, due: Date.now() + ms });
+  timers.push({ id: String(Date.now()), label: pick.t.label, col: pick.t.col, idx: pick.t.idx, tab: pick.t.tab, due: Date.now() + ms, mode: how.mode });
   save();
   render();
 }
