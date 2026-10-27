@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.0
+
+- New choice when starting a timer: send what is in the chat box (your prompt and attachments) instead of `continue`.
+
 ## 0.1.0
 
 First release.
